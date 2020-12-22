@@ -1,0 +1,55 @@
+import "TanksVFX.del";
+import "TankProperties.del";
+import "TankBullet.del";
+
+playervar define isTankActor!;
+
+class TankActor {
+    public define dummy;
+    public define moveSpeed;
+    public define bulletType;
+    public define firerate;
+    public define ricochets;
+    public define bulletCount;
+    public define mineCount;
+    public define color;
+    private TankBullet[] bullets;
+
+    
+    public TankActor(TankType type) {
+        moveSpeed   = root.TANK_MOVESPEEDS[type];
+        bulletType  = root.TANK_BULLETTYPES[type];
+        firerate    = root.TANK_FIRERATES[type];
+        ricochets   = root.TANK_RICOCHETS[type];
+        bulletCount = root.TANK_BULLETCOUNTS[type];
+        mineCount   = root.TANK_MINECOUNTS[type];
+        color       = root.TANK_COLORS[type];
+        bullets     = [];
+        CreateDummyBot(Hero.Bastion, Slot: type==TankType.Player1 ? 2 : type==TankType.Player2 ? 3 : -1);
+        dummy = LastCreatedEntity();
+        StartForcingPlayerOutlines(dummy, AllPlayers(Team.All), true, color);
+        dummy.isTankActor = true;
+        SetMoveSpeed(dummy, 100*(moveSpeed/5.5));
+    }
+
+    public void fire() {
+        root.PlayBulletShot(PositionOf(dummy) + 1.5*FacingDirectionOf(dummy));
+        SetStatus(dummy, null, Status.Rooted, 0.1);
+        ModifyVariable(bullets, Operation.AppendToArray, new TankBullet(
+                                                                Owner:      this, 
+                                                                Position:   PositionOf(dummy) + 1.5*root.FlattenedDirection(FacingDirectionOf(dummy)), 
+                                                                Direction:  root.FlattenedDirection(FacingDirectionOf(dummy)),
+                                                                Type:       bulletType,
+                                                                Ricochets:  ricochets));
+    }
+}
+
+rule: "[TankActor.del] Transform into tank"
+Event.OngoingPlayer
+if(IsDummyBot())
+if(isTankActor)
+{
+    SetUltimateAbilityEnabled();
+    SetUltimateCharge(EventPlayer(), 100);
+    StartHoldingButton(EventPlayer(), Button.Ultimate);
+}

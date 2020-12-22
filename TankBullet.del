@@ -1,0 +1,131 @@
+import "TankProperties.del";
+import "GlobalProperties.del";
+import "TanksVFX.del";
+//import "../OSTWUtils/Vectors.del";
+import "../OSTWUtils/Effects.del";
+
+globalvar TankBullet[] allBullets;
+globalvar define numBullets!;
+
+class TankBullet {
+    private define owner;
+    private Vector startPos;
+    private Vector position;
+    private Vector direction;
+    private TankBulletType type;
+    private define ricochets;
+    private define lastTimestamp;
+    private define nextTimestamp;
+    private define currPathIndex;
+    private define[] vfx;
+    private Vector[] pathPoints;
+    private define[] pathDirections;
+    private define[] pathTimes;
+    private define memIndex;
+
+    public TankBullet(define Owner, Vector Position, Vector Direction, TankBulletType Type, define Ricochets) {
+        owner       = Owner;
+        this.updateTrajectory(Position, Direction, Ricochets);
+        position    = Position;
+        ricochets   = Ricochets;
+        vfx         = [];
+        SmallMessage(HostPlayer(), ricochets);
+
+        CreateEffect(
+            Type:           Effect.Sphere,
+            Color:          Color.White,
+            Position:       UpdateEveryFrame(root.Render(<TankBullet>EvaluateOnce(this).position, root.RENDER_DIST)),
+            Radius:         0.1
+        );
+        ModifyVariable(vfx, Operation.AppendToArray, LastCreatedEntity());
+        CreateEffect(
+            Type:           Effect.BadAura,
+            Color:          Color.White,
+            Position:       UpdateEveryFrame(root.Render(<TankBullet>EvaluateOnce(this).position, root.CAM_DIST-1)),
+            Radius:         0.25
+        );
+        ModifyVariable(vfx, Operation.AppendToArray, LastCreatedEntity());
+
+        memIndex = root.numBullets;
+        root.allBullets[memIndex] = this;
+        root.numBullets++;
+    }
+
+    public void updateTrajectory(Vector StartPosition, Vector Direction, define Ricochets) {
+        startPos = StartPosition;
+        direction = Direction;
+        lastTimestamp = TotalTimeElapsed();
+        currPathIndex = 0;
+
+        pathPoints = [StartPosition];
+        pathDirections = [Direction];
+        pathTimes = [TotalTimeElapsed()];
+        
+        Vector pos = StartPosition;
+        Vector dir = Direction;
+        define time = TotalTimeElapsed();
+        define bounces = Ricochets;
+        while (bounces >= 0) {
+            Vector hitPos = null;
+            Vector hitNorm = null;
+            foreach(define[] segment in root.collisionMap) {
+                if(root.DoesRayIntersectLineSegment(pos, dir, segment[0], segment[1])) {
+                    if(hitPos==null || root.IsCloser(pos, root.LineIntersection(pos, dir, segment[0], DirectionTowards(segment[0], segment[1])), hitPos)) {
+                        hitPos = root.LineIntersection(pos, dir, segment[0], DirectionTowards(segment[0], segment[1]));
+                        hitNorm = root.PointLineNormal(pos, segment[0], segment[1]);
+                    }
+                }
+            }
+            if(hitPos != null) {
+                ModifyVariable(pathPoints, Operation.AppendToArray, hitPos);
+                dir = root.VectorReflection(dir, hitNorm);
+                ModifyVariable(pathDirections, Operation.AppendToArray, dir);
+                time += DistanceBetween(pos, hitPos) / root.BulletSpeed(type);
+                ModifyVariable(pathTimes, Operation.AppendToArray, time);
+                pos = hitPos;
+            }
+            bounces--;
+        }
+        nextTimestamp = pathTimes[1];
+    }
+    
+    public Vector getPosition():
+        startPos + direction * Max((TotalTimeElapsed() - lastTimestamp) * root.BulletSpeed(type),0);
+
+    public void doTick() {
+        if(TotalTimeElapsed() >= nextTimestamp) {
+            if(ricochets > 0) {
+                currPathIndex++;
+
+                startPos = pathPoints[currPathIndex];
+                direction = pathDirections[currPathIndex];
+
+                lastTimestamp = nextTimestamp;
+                nextTimestamp = pathTimes[currPathIndex+1];
+
+                root.PlayBulletBounce(startPos);
+
+                ricochets--;
+            }
+            else {
+                SmallMessage(HostPlayer(), "bullet died");
+                root.PlayBulletFizzle(LastOf(pathPoints));
+                root.DestroyEffects(vfx);
+                root.numBullets--;
+                root.allBullets[memIndex] = [];
+                delete this;
+            }
+        }
+        position = getPosition();
+    }
+}
+
+rule: "[TankBullet.del] Update bullets"
+if(CountOf(allBullets) > 0)
+{
+    foreach(TankBullet bullet in allBullets) {
+        if(bullet != []) bullet.doTick();
+    }
+    MinWait();
+    Loop();
+}

@@ -1,0 +1,177 @@
+import "TankProperties.del";
+import "GlobalProperties.del";
+import "TanksVFX.del";
+//import "../OSTWUtils/Vectors.del";
+import "../OSTWUtils/Effects.del";
+
+globalvar TankBullet[] allBullets;
+globalvar define numBullets!;
+
+/*
+class TankBullet {
+    private define owner;
+    private Vector startPos;
+    private Vector direction;
+    private TankBulletType type;
+    private define ricochets;
+    private define timestamp;
+    private define[] vfx;
+
+    public TankBullet(define Owner, Vector Position, Vector Direction, TankBulletType Type, define Ricochets) {
+        owner       = Owner;
+        startPos    = Position;
+        direction   = Direction;
+        type        = Type;
+        ricochets   = Ricochets;
+        timestamp   = TotalTimeElapsed();
+        vfx         = [];
+
+        CreateEffect(
+            Type:           Effect.Sphere,
+            Color:          Color.White,
+            Position:       UpdateEveryFrame(root.Render(<TankBullet>EvaluateOnce(this).getPosition(), root.RENDER_DIST)),
+            Radius:         0.1
+        );
+        ModifyVariable(vfx, Operation.AppendToArray, LastCreatedEntity());
+        CreateEffect(
+            Type:           Effect.BadAura,
+            Color:          Color.White,
+            Position:       UpdateEveryFrame(root.Render(<TankBullet>EvaluateOnce(this).getPosition(), root.RENDER_DIST)),
+            Radius:         0.1
+        );
+        ModifyVariable(vfx, Operation.AppendToArray, LastCreatedEntity());
+
+        ModifyVariable(root.allBullets, Operation.AppendToArray, this);
+    }
+
+    
+    public Vector getPosition():
+        startPos + direction * Max((TotalTimeElapsed() - timestamp) * (type==TankBulletType.Normal ? root.BULLETSPEED_NORMAL : root.BULLETSPEED_FAST),0);
+    
+    public void calculateTrajectory() {
+        return;
+    }
+
+    public void doTick() {
+        define normal = null;
+        define planePos = null;
+        if(XOf(getPosition()) < root.LEVEL_XMIN) {
+            normal = Left();
+            planePos = Vector(root.LEVEL_XMIN,0,0);
+        }
+        else if(XOf(getPosition()) > root.LEVEL_XMAX) {
+            normal = Right();
+            planePos = Vector(root.LEVEL_XMAX,0,0);
+        }
+        else if(ZOf(getPosition()) < root.LEVEL_ZMIN) {
+            normal = Forward();
+            planePos = Vector(0,0,root.LEVEL_ZMIN);
+        }
+        else if(ZOf(getPosition()) > root.LEVEL_ZMAX) {
+            normal = Backward();
+            planePos = Vector(0,0,root.LEVEL_ZMAX);
+        }
+
+        if(normal!=null) {
+            startPos = LinePlaneIntersection(startPos, direction, planePos, normal);
+            root.PlayBulletBounce(startPos+normal);
+            timestamp = TotalTimeElapsed();
+            direction = direction - 2*(DotProduct(direction, normal))*normal;
+        }
+    }
+}
+*/
+
+class TankBullet {
+    private define owner;
+    private Vector startPos;
+    private Vector position;
+    private Vector direction;
+    private TankBulletType type;
+    private define ricochets;
+    private define timestamp;
+    private define[] vfx;
+
+    public TankBullet(define Owner, Vector Position, Vector Direction, TankBulletType Type, define Ricochets) {
+        owner       = Owner;
+        startPos    = Position;
+        position    = Position;
+        direction   = Direction;
+        type        = Type;
+        ricochets   = Ricochets;
+        timestamp   = TotalTimeElapsed();
+        vfx         = [];
+
+        CreateEffect(
+            Type:           Effect.Sphere,
+            Color:          Color.White,
+            Position:       UpdateEveryFrame(root.Render(<TankBullet>EvaluateOnce(this).position, root.RENDER_DIST)),
+            Radius:         0.1
+        );
+        ModifyVariable(vfx, Operation.AppendToArray, LastCreatedEntity());
+        CreateEffect(
+            Type:           Effect.BadAura,
+            Color:          Color.White,
+            Position:       UpdateEveryFrame(root.Render(<TankBullet>EvaluateOnce(this).position, root.CAM_DIST-1)),
+            Radius:         0.25
+        );
+        ModifyVariable(vfx, Operation.AppendToArray, LastCreatedEntity());
+
+        ModifyVariable(root.allBullets, Operation.AppendToArray, this);
+        root.numBullets++;
+    }
+
+    
+    public Vector getPosition():
+        startPos + direction * Max((TotalTimeElapsed() - timestamp) * (type==TankBulletType.Normal ? root.BULLETSPEED_NORMAL : root.BULLETSPEED_FAST),0);
+
+    public void doTick() {
+        position = getPosition();
+
+        define normal = null;
+        define planePos = null;
+        if(XOf(position) < root.LEVEL_XMIN) {
+            normal = Left();
+            planePos = Vector(root.LEVEL_XMIN,0,0);
+        }
+        else if(XOf(position) > root.LEVEL_XMAX) {
+            normal = Right();
+            planePos = Vector(root.LEVEL_XMAX,0,0);
+        }
+        else if(ZOf(position) < root.LEVEL_ZMIN) {
+            normal = Forward();
+            planePos = Vector(0,0,root.LEVEL_ZMIN);
+        }
+        else if(ZOf(position) > root.LEVEL_ZMAX) {
+            normal = Backward();
+            planePos = Vector(0,0,root.LEVEL_ZMAX);
+        }
+
+        if(normal!=null) {
+            define hitPos = LinePlaneIntersection(startPos, direction, planePos, normal);
+            if(ricochets > 0) {
+                root.PlayBulletBounce(hitPos);
+                startPos = hitPos;
+                timestamp = TotalTimeElapsed();
+                direction = direction - 2*(DotProduct(direction, normal))*normal;
+                ricochets--;
+            }
+            else {
+                root.PlayBulletFizzle(hitPos);
+                root.DestroyEffects(vfx);
+                root.numBullets--;
+                delete this;
+            }
+        }
+    }
+}
+
+rule: "[TankBullet.del] Update bullets"
+if(CountOf(allBullets) > 0)
+{
+    foreach(TankBullet bullet in allBullets) {
+        bullet.doTick();
+    }
+    MinWait();
+    Loop();
+}

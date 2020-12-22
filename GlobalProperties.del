@@ -1,0 +1,48 @@
+Vector Vec2(define x, define z): Vector(x, 0, z);
+Vector PerpendicularVec2(Vector Vec2): Vec2(-Vec2.Z, Vec2.X);
+Vector FlattenedDirection(Vector Direction): DirectionFromAngles(HorizontalAngleFromDirection(Direction), 0);
+
+Vector Render(Vector Vec2, define Distance): 
+    CAM_POS + DirectionTowards(CAM_POS, Vec2) * (Distance / CosineFromDegrees(AngleBetweenVectors(
+                                                                        DirectionTowards(CAM_POS, Vec2(0,0)), 
+                                                                        DirectionTowards(CAM_POS, Vec2)
+                                                                        )));
+Vector PointLineNormal(Vector Point, Vector LineStart, Vector LineEnd):
+    Normalize(CrossProduct(
+        CrossProduct(VectorTowards(Point, LineStart), VectorTowards(LineStart, LineEnd)),
+        VectorTowards(LineStart, LineEnd)
+    ));
+
+Vector VectorReflection(Vector Direction, Vector Normal): Direction - 2*(DotProduct(Direction, Normal))*Normal;
+
+Vector LineIntersection(Vector Line1Start, Vector Line1Direction, Vector Line2Start, Vector Line2Direction): 
+    Line1Start + Line1Direction * 
+    DistanceBetween(Line1Start, Line2Start) * 
+    SineFromDegrees(AngleBetweenVectors(Line2Direction, VectorTowards(Line2Start, Line1Start))) /
+    SineFromDegrees(AngleBetweenVectors(Line1Direction, Line2Direction));
+
+define DoesRayIntersectLineSegment(Vector RayStart, Vector RayDirection, Vector LineStart, Vector LineEnd):
+    AngleBetweenVectors(RayDirection, VectorTowards(RayStart, LineStart)) + AngleBetweenVectors(RayDirection, VectorTowards(RayStart, LineEnd))
+    <=
+    AngleBetweenVectors(VectorTowards(RayStart, LineStart), VectorTowards(RayStart, LineEnd)) + 0.25;
+
+define IsCloser(Vector Point, Vector NewDestination, Vector OldDestination): DistanceBetween(Point, NewDestination) < DistanceBetween(Point, OldDestination);
+
+
+define LEVEL_XMIN: -16;
+define LEVEL_XMAX: 16;
+define LEVEL_ZMIN: -16;
+define LEVEL_ZMAX: 16;
+define LEVEL_TOPLEFT: Vec2(LEVEL_XMAX, LEVEL_ZMAX);
+define LEVEL_TOPRIGHT: Vec2(LEVEL_XMIN, LEVEL_ZMAX);
+define LEVEL_BOTTOMLEFT: Vec2(LEVEL_XMAX, LEVEL_ZMIN);
+define LEVEL_BOTTOMRIGHT: Vec2(LEVEL_XMIN, LEVEL_ZMIN);
+
+define CAM_ANGLE: 1;
+define CAM_DIR: DirectionFromAngles(180,-90+CAM_ANGLE);
+define SCREEN_DOWN: DirectionFromAngles(180, CAM_ANGLE);
+define CAM_DIST: 30;
+define CAM_POS: Vector(0,0,0) + CAM_DIST * CAM_DIR;
+define RENDER_DIST: 10;
+
+define collisionMap: [[LEVEL_TOPLEFT, LEVEL_TOPRIGHT], [LEVEL_TOPRIGHT, LEVEL_BOTTOMRIGHT], [LEVEL_BOTTOMRIGHT, LEVEL_BOTTOMLEFT], [LEVEL_BOTTOMLEFT, LEVEL_TOPLEFT]];

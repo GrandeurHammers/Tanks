@@ -1,0 +1,117 @@
+enum TankType { Player1, Player2, Brown, Grey, Teal, Yellow, Red, Green, Purple, White, Black }
+enum TankMoveSpeed {
+    Stationary = 0,
+    Slow = 2,
+    Normal = 4,
+    Fast = 6
+}
+enum TankBulletType {Normal, Fast}
+define BULLETSPEED_NORMAL: 5;
+define BULLETSPEED_FAST: 10;
+
+define BulletSpeed(TankBulletType type): type==TankBulletType.Normal ? BULLETSPEED_NORMAL : BULLETSPEED_FAST;
+
+enum TankFirerate {
+    Slow = 1,
+    Fast = 0.2
+}
+
+globalvar TankMoveSpeed[] TANK_MOVESPEEDS!;
+globalvar TankBulletType[] TANK_BULLETTYPES!;
+globalvar TankFirerate[] TANK_FIRERATES!;
+globalvar define[] TANK_RICOCHETS!;
+globalvar define[] TANK_BULLETCOUNTS!;
+globalvar define[] TANK_MINECOUNTS!;
+globalvar define[] TANK_COLORS!;
+
+rule: "[TankProperties.del] Tank properties"
+{
+    TANK_MOVESPEEDS     [TankType.Player1]  = TankMoveSpeed.Normal;
+    TANK_BULLETTYPES    [TankType.Player1]  = TankBulletType.Normal;
+    TANK_FIRERATES      [TankType.Player1]  = TankFirerate.Fast;
+    TANK_RICOCHETS      [TankType.Player1]  = 1;
+    TANK_BULLETCOUNTS   [TankType.Player1]  = 5;
+    TANK_MINECOUNTS     [TankType.Player1]  = 2;
+    TANK_COLORS         [TankType.Player1]  = Color.Blue;
+
+    TANK_MOVESPEEDS     [TankType.Player2]  = TANK_MOVESPEEDS[TankType.Player1];
+    TANK_BULLETTYPES    [TankType.Player2]  = TANK_BULLETTYPES[TankType.Player1];
+    TANK_FIRERATES      [TankType.Player2]  = TANK_FIRERATES[TankType.Player1];
+    TANK_RICOCHETS      [TankType.Player2]  = TANK_RICOCHETS[TankType.Player1];
+    TANK_BULLETCOUNTS   [TankType.Player2]  = TANK_BULLETCOUNTS[TankType.Player1];
+    TANK_MINECOUNTS     [TankType.Player2]  = TANK_MINECOUNTS[TankType.Player1];
+    TANK_COLORS         [TankType.Player2]  = Color.Red;
+
+    TANK_MOVESPEEDS     [TankType.Brown]    = TankMoveSpeed.Stationary;
+    TANK_BULLETTYPES    [TankType.Brown]    = TankBulletType.Normal;
+    TANK_FIRERATES      [TankType.Brown]    = TankFirerate.Slow;
+    TANK_RICOCHETS      [TankType.Brown]    = 1;
+    TANK_BULLETCOUNTS   [TankType.Brown]    = 1;
+    TANK_MINECOUNTS     [TankType.Brown]    = 0;
+    TANK_COLORS         [TankType.Brown]    = CustomColor(165, 42, 42, 255);
+
+    TANK_MOVESPEEDS     [TankType.Grey]     = TankMoveSpeed.Slow;
+    TANK_BULLETTYPES    [TankType.Grey]     = TankBulletType.Normal;
+    TANK_FIRERATES      [TankType.Grey]     = TankFirerate.Slow;
+    TANK_RICOCHETS      [TankType.Grey]     = 1;
+    TANK_BULLETCOUNTS   [TankType.Grey]     = 1;
+    TANK_MINECOUNTS     [TankType.Grey]     = 0;
+    TANK_COLORS         [TankType.Grey]     = Color.Gray;
+
+    TANK_MOVESPEEDS     [TankType.Teal]     = TankMoveSpeed.Slow;
+    TANK_BULLETTYPES    [TankType.Teal]     = TankBulletType.Fast;
+    TANK_FIRERATES      [TankType.Teal]     = TankFirerate.Slow;
+    TANK_RICOCHETS      [TankType.Teal]     = 0;
+    TANK_BULLETCOUNTS   [TankType.Teal]     = 1;
+    TANK_MINECOUNTS     [TankType.Teal]     = 0;
+    TANK_COLORS         [TankType.Teal]     = CustomColor(0, 128, 128, 255);
+
+    TANK_MOVESPEEDS     [TankType.Yellow]   = TankMoveSpeed.Normal;
+    TANK_BULLETTYPES    [TankType.Yellow]   = TankBulletType.Normal;
+    TANK_FIRERATES      [TankType.Yellow]   = TankFirerate.Slow;
+    TANK_RICOCHETS      [TankType.Yellow]   = 1;
+    TANK_BULLETCOUNTS   [TankType.Yellow]   = 1;
+    TANK_MINECOUNTS     [TankType.Yellow]   = 4;
+    TANK_COLORS         [TankType.Yellow]   = Color.Yellow;
+    
+
+    TANK_MOVESPEEDS     [TankType.Red]      = TankMoveSpeed.Slow;
+    TANK_BULLETTYPES    [TankType.Red]      = TankBulletType.Normal;
+    TANK_FIRERATES      [TankType.Red]      = TankFirerate.Fast;
+    TANK_RICOCHETS      [TankType.Red]      = 1;
+    TANK_BULLETCOUNTS   [TankType.Red]      = 3;
+    TANK_MINECOUNTS     [TankType.Red]      = 0;
+    TANK_COLORS         [TankType.Red]      = CustomColor(247, 27, 104, 255);
+
+    TANK_MOVESPEEDS     [TankType.Green]    = TankMoveSpeed.Stationary;
+    TANK_BULLETTYPES    [TankType.Green]    = TankBulletType.Fast;
+    TANK_FIRERATES      [TankType.Green]    = TankFirerate.Fast;
+    TANK_RICOCHETS      [TankType.Green]    = 2;
+    TANK_BULLETCOUNTS   [TankType.Green]    = 2;
+    TANK_MINECOUNTS     [TankType.Green]    = 0;
+    TANK_COLORS         [TankType.Green]    = Color.Green;
+
+    TANK_MOVESPEEDS     [TankType.Purple]   = TankMoveSpeed.Normal;
+    TANK_BULLETTYPES    [TankType.Purple]   = TankBulletType.Normal;
+    TANK_FIRERATES      [TankType.Purple]   = TankFirerate.Fast;
+    TANK_RICOCHETS      [TankType.Purple]   = 1;
+    TANK_BULLETCOUNTS   [TankType.Purple]   = 5;
+    TANK_MINECOUNTS     [TankType.Purple]   = 2;
+    TANK_COLORS         [TankType.Purple]   = Color.Purple;
+
+    TANK_MOVESPEEDS     [TankType.White]    = TankMoveSpeed.Slow;
+    TANK_BULLETTYPES    [TankType.White]    = TankBulletType.Normal;
+    TANK_FIRERATES      [TankType.White]    = TankFirerate.Fast;
+    TANK_RICOCHETS      [TankType.White]    = 1;
+    TANK_BULLETCOUNTS   [TankType.White]    = 5;
+    TANK_MINECOUNTS     [TankType.White]    = 2;
+    TANK_COLORS         [TankType.White]    = Color.White;
+
+    TANK_MOVESPEEDS     [TankType.Black]    = TankMoveSpeed.Fast;
+    TANK_BULLETTYPES    [TankType.Black]    = TankBulletType.Fast;
+    TANK_FIRERATES      [TankType.Black]    = TankFirerate.Fast;
+    TANK_RICOCHETS      [TankType.Black]    = 0;
+    TANK_BULLETCOUNTS   [TankType.Black]    = 2;
+    TANK_MINECOUNTS     [TankType.Black]    = 2;
+    TANK_COLORS         [TankType.Black]    = Color.Black;
+}

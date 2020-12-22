@@ -1,0 +1,33 @@
+{
+  "Modes": {
+    "All": {
+      "Enemy Health Bars": false,
+      "Game Mode Start": "Manual",
+      "Kill Cam": false,
+      "Kill Feed": false,
+      "Respawn As Random Hero": true
+    },
+    "Deathmatch": {
+      "Enabled Maps": [
+        "Workshop Chamber"
+      ]
+    }
+  },
+  "Lobby": {
+    "Max FFA Players": 2
+  },
+  "Heroes": {
+    "General": {
+      "Bastion": {
+        "Ultimate Ability (Configuration: Tank)": false,
+        "Primary Fire": false,
+        "Self-Repair": false,
+        "Spawn With Ultimate Ready": true,
+        "Quick Melee": false,
+        "Reconfigure": false,
+        "Infinite Ultimate Duration": true
+      },
+      "Enabled Heroes": ["Bastion"]
+    }
+  }
+}

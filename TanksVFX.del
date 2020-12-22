@@ -1,0 +1,75 @@
+void PlayBulletShot(define pos) {
+    PlayEffect(
+        VisibleTo:      AllPlayers(),
+        Type:           PlayEffect.GoodExplosion,
+        Color:          Color.Black,
+        Position:       pos,
+        Radius:         1.5
+    );
+    PlayEffect(
+        VisibleTo:      AllPlayers(),
+        Type:           PlayEffect.BadExplosion,
+        Color:          Color.Orange,
+        Position:       pos,
+        Radius:         1
+    );
+    PlayEffect(
+        VisibleTo:      AllPlayers(),
+        Type:           PlayEffect.ExplosionSound,
+        Position:       pos,
+        Radius:         100
+    );
+}
+
+void PlayBulletBounce(define pos) {
+    PlayEffect(
+        VisibleTo:      AllPlayers(),
+        Type:           PlayEffect.BadExplosion,
+        Color:          Color.Orange,
+        Position:       pos,
+        Radius:         1
+    );
+    PlayEffect(
+        VisibleTo:      AllPlayers(),
+        Type:           PlayEffect.BadExplosion,
+        Color:          Color.White,
+        Position:       pos,
+        Radius:         0.75
+    );
+    PlayEffect(
+        VisibleTo:      AllPlayers(),
+        Type:           PlayEffect.BuffExplosionSound,
+        Position:       pos,
+        Radius:         60
+    );
+}
+
+void PlayBulletFizzle(define pos) {
+    PlayEffect(
+        VisibleTo:      AllPlayers(),
+        Type:           PlayEffect.BadExplosion,
+        Color:          Color.Orange,
+        Position:       pos,
+        Radius:         0.5
+    );
+    PlayEffect(
+        VisibleTo:      AllPlayers(),
+        Type:           PlayEffect.BadExplosion,
+        Color:          Color.Black,
+        Position:       pos,
+        Radius:         1
+    );
+    PlayEffect(
+        VisibleTo:      AllPlayers(),
+        Type:           PlayEffect.BadExplosion,
+        Color:          Color.Black,
+        Position:       pos,
+        Radius:         1.5
+    );
+    PlayEffect(
+        VisibleTo:      AllPlayers(),
+        Type:           PlayEffect.ExplosionSound,
+        Position:       pos,
+        Radius:         60
+    );
+}

@@ -1,0 +1,112 @@
+import "customGameSettings.json";
+import "TankActor.del";
+import "GlobalProperties.del";
+import "Debug.del";
+
+define cursorRawX: HorizontalAngleFromDirection(FacingDirectionOf());
+define cursorRawZ: -1*VerticalAngleFromDirection(FacingDirectionOf());
+define cursorX: Min(LEVEL_XMAX, Max(LEVEL_XMIN, cursorRawX));
+define cursorZ: Min(LEVEL_ZMAX, Max(LEVEL_ZMIN, cursorRawZ));
+Vector cursorPos: Vec2(cursorX, cursorZ);
+define showDots: DistanceBetween(PositionOf(), cursorPos) >= 20 || cursorRawX > LEVEL_XMAX || cursorRawX < LEVEL_XMIN || cursorRawZ > LEVEL_ZMAX || cursorRawZ < LEVEL_ZMIN;
+
+playervar TankActor playerTank;
+
+rule: "[TanksMain.del] Global init"
+{
+    CreateBeamEffect(
+        BeamType:           BeamType.GrappleBeam,
+        Color:              Color.White,
+        StartPosition:      Render(LEVEL_TOPLEFT, RENDER_DIST),
+        EndPosition:        Render(LEVEL_TOPRIGHT, RENDER_DIST),
+        Reevaluation:       EffectRev.VisibleTo
+    );
+    CreateBeamEffect(
+        BeamType:           BeamType.GrappleBeam,
+        Color:              Color.White,
+        StartPosition:      Render(LEVEL_TOPRIGHT, RENDER_DIST),
+        EndPosition:        Render(LEVEL_BOTTOMRIGHT, RENDER_DIST),
+        Reevaluation:       EffectRev.VisibleTo
+    );
+    CreateBeamEffect(
+        BeamType:           BeamType.GrappleBeam,
+        Color:              Color.White,
+        StartPosition:      Render(LEVEL_BOTTOMRIGHT, RENDER_DIST),
+        EndPosition:        Render(LEVEL_BOTTOMLEFT, RENDER_DIST),
+        Reevaluation:       EffectRev.VisibleTo
+    );
+    CreateBeamEffect(
+        BeamType:           BeamType.GrappleBeam,
+        Color:              Color.White,
+        StartPosition:      Render(LEVEL_BOTTOMLEFT, RENDER_DIST),
+        EndPosition:        Render(LEVEL_TOPLEFT, RENDER_DIST),
+        Reevaluation:       EffectRev.VisibleTo
+    );
+
+
+}
+
+rule: "[TanksMain.del] Player init"
+Event.OngoingPlayer
+if(!IsDummyBot())
+if(HasSpawned())
+{
+    SetStatus(Status: Status.PhasedOut, Duration: 9999);
+    SetMoveSpeed(EventPlayer(), 100*TANK_MOVESPEEDS[TankType.Player1]/5.5);
+    SetAimSpeed(EventPlayer(), 50);
+    StartCamera(EventPlayer(), CAM_POS, Vector(0,0.001,0));
+    DisableHeroHud();
+    playerTank = new TankActor(SlotOf()==0 ? TankType.Player1 : TankType.Player2);
+    SetInvisible(EventPlayer(), InvisibleTo.All);
+    SetJumpEnabled(EventPlayer(), false);
+    SetUltimateAbilityEnabled();
+    SetUltimateCharge(EventPlayer(), 100);
+    StartHoldingButton(EventPlayer(), Button.Ultimate);
+    DisallowButton(EventPlayer(), Button.PrimaryFire);
+    StartTransformingThrottle(EventPlayer(), RelativeDirection: Forward());
+    //Teleport(playerTank.dummy, PositionOf(EventPlayer()));
+    //StartThrottleInDirection(playerTank.dummy, DirectionTowards(playerTank.dummy, EventPlayer()), DistanceBetween(playerTank.dummy, EventPlayer())>0.2 ? 1 : 0);
+    AttachPlayers(playerTank.dummy, EventPlayer());
+    
+    StartFacing(playerTank.dummy, UpdateEveryFrame(DirectionTowards(PositionOf(playerTank.dummy), cursorPos)), 999999);
+    
+    CreateInWorldText(
+        Header:         SlotOf() == 0 ? "┼" : "※",
+        Position:       UpdateEveryFrame(cursorPos + SCREEN_DOWN*2.25),
+        Scale:          4,
+        TextColor:      SlotOf() == 0 ? CustomColor(39, 170, 255, 127) : CustomColor(200, 0, 19, 127),
+        Clipping:       Clipping.DoNotClip
+    );
+    if(SlotOf() == 0) CreateInWorldText(
+        Header:         "⊙",
+        Position:       UpdateEveryFrame(cursorPos + SCREEN_DOWN*2.05),
+        Scale:          2.5,
+        TextColor:      SlotOf() == 0 ? CustomColor(39, 170, 255, 50) : CustomColor(200, 0, 19, 50),
+        Clipping:       Clipping.DoNotClip
+    );
+
+    for(define i! = 1; i < 9; i++) {
+        CreateInWorldText(
+            Header:         "•",
+            Position:       UpdateEveryFrame(PositionOf() + VectorTowards(PositionOf(), cursorPos) * EvaluateOnce(i)/9 + SCREEN_DOWN*2),
+            Scale:          2,
+            TextColor:      SlotOf() == 0 ? CustomColor(39, 170, 255, UpdateEveryFrame(127*showDots)) : CustomColor(200, 0, 19, UpdateEveryFrame(127*showDots)),
+            Clipping:       Clipping.DoNotClip
+        );
+    }
+
+    Wait(2);
+    SetFacing(EventPlayer(), DirectionFromAngles((LEVEL_XMIN+LEVEL_XMAX)/2, (LEVEL_ZMIN+LEVEL_ZMAX)/2));
+}
+
+rule: "[TanksMain.del] Fire shot"
+Event.OngoingPlayer
+if(IsButtonHeld(EventPlayer(), Button.PrimaryFire))
+{
+    SetFacing(playerTank.dummy, DirectionTowards(PositionOf(playerTank.dummy), cursorPos));
+    playerTank.fire();
+    SetStatus(EventPlayer(), null, Status.Rooted, 0.1);
+    Wait(TANK_FIRERATES[TankType.Player1]);
+    LoopIfConditionIsTrue();
+}
+

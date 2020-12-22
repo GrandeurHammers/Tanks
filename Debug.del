@@ -1,0 +1,30 @@
+import "ServerLoad.del";
+import "TankBullet.del";
+import "GlobalProperties.del";
+
+rule: "[Debug.del] Show bullet count"
+{
+    CreateHudText(
+        Header:         numBullets,
+        Subheader:      "Bullet count", 
+        Location:       Location.Right,
+        HeaderColor:    Color.Turquoise,
+        SortOrder:      -1+0.1
+    );
+    /*CreateBeamEffect(
+        StartPosition:  PositionOf(HostPlayer()),
+        EndPosition:    PositionOf(HostPlayer()) + 5*PointLineNormal(PositionOf(HostPlayer()), LEVEL_BOTTOMRIGHT, LEVEL_TOPRIGHT)
+    );
+    CreateEffect(
+        Type:           Effect.Orb,
+        Position:       LineIntersection(PositionOf(HostPlayer()), Right(), LEVEL_BOTTOMRIGHT, Forward())
+    );
+    CreateHudText(
+        Header:         RayIntersectsLineSegment(LEVEL_TOPLEFT, DirectionTowards(LEVEL_TOPLEFT, HostPlayer()), LEVEL_BOTTOMRIGHT, LEVEL_TOPRIGHT),
+        Subheader:      "Does top left to player intersect right wall", 
+        Location:       Location.Right,
+        HeaderColor:    Color.Turquoise,
+        SortOrder:      -1+0.2
+    );
+    */
+}

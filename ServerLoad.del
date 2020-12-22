@@ -1,0 +1,10 @@
+rule: "[ServerLoad.del] Show server load"
+{
+    CreateHudText(
+        Header:         ServerLoadAverage(),
+        Subheader:      "Server Load", 
+        Location:       Location.Right,
+        HeaderColor:    Color.Turquoise,
+        SortOrder:      -1
+    );
+}
