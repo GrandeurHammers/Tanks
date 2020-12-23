@@ -29,7 +29,7 @@ class TankBullet {
         position    = Position;
         ricochets   = Ricochets;
         vfx         = [];
-        SmallMessage(HostPlayer(), ricochets);
+        //SmallMessage(HostPlayer(), ricochets);
 
         CreateEffect(
             Type:           Effect.Sphere,
@@ -108,7 +108,7 @@ class TankBullet {
                 ricochets--;
             }
             else {
-                SmallMessage(HostPlayer(), "bullet died");
+                //SmallMessage(HostPlayer(), "bullet died");
                 root.PlayBulletFizzle(LastOf(pathPoints));
                 root.DestroyEffects(vfx);
                 root.numBullets--;

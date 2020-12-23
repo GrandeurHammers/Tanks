@@ -4,7 +4,13 @@ rule: "[ServerLoad.del] Show server load"
         Header:         ServerLoadAverage(),
         Subheader:      "Server Load", 
         Location:       Location.Right,
-        HeaderColor:    Color.Turquoise,
-        SortOrder:      -1
+        HeaderColor:    CustomColor(
+                            127/255 * ServerLoadAverage(),
+                            230 * (1 - ServerLoadAverage() / 255),
+                            151 * (1 - ServerLoadAverage() / 255),
+                            255
+                        ),
+        SortOrder:      -10,
+        Reevaluation:   HudTextRev.VisibleToStringAndColor
     );
 }
